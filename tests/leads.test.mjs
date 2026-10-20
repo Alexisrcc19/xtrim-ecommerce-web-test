@@ -40,6 +40,7 @@ test("envía únicamente los campos públicos y acepta una confirmación real 20
 test("no muestra éxito para errores HTTP ni respuestas incompletas", async () => {
   for (const [status, body, expected] of [
     [400, {}, /rechazó los datos/],
+    [409, { error: { message: "private details" } }, /solicitud en curso/],
     [422, {}, /ya no está disponible/],
     [500, {}, /No pudimos enviar/],
     [200, { data: lead }, /No pudimos confirmar/],

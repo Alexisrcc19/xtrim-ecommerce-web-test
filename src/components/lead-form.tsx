@@ -8,6 +8,7 @@ import { price } from "@/lib/format";
 import { provinces, validateLead } from "@/lib/lead-validation";
 import type { FieldErrors, LeadInput } from "@/lib/lead-validation";
 import { sendLead } from "@/lib/leads";
+import { PhoneInput } from "@/components/phone-input";
 
 interface Confirmation {
   id: string;
@@ -166,13 +167,11 @@ export function LeadForm({
           )}
 
           <label htmlFor="phone">Teléfono</label>
-          <input
+          <PhoneInput
             id="phone"
             name="phone"
-            type="tel"
             autoComplete="tel"
-            maxLength={30}
-            placeholder="099 123 4567"
+            placeholder="0991234567"
             required
             {...errorProps("phone")}
             aria-describedby={errors.phone ? "phone-error" : "phone-hint"}

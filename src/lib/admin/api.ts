@@ -34,6 +34,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       400: "La API rechazó los datos. Revisa los campos.",
       401: "La credencial de la API no es válida. Revisa la configuración del servidor.",
       404: "El lead ya no existe.",
+      409: "Ya existe una solicitud en Nuevo o En gestión con este teléfono. Revisa el teléfono o el estado antes de guardar.",
       422: "El plan no está disponible.",
       429: "Se alcanzó el límite de solicitudes. Inténtalo más tarde.",
       503: "La API administrativa no está configurada o disponible.",

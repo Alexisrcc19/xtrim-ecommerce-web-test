@@ -1,12 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateLead, provinces } from "../src/lib/lead-validation.ts";
+import {
+  validateLead,
+  provinces,
+  phoneInputValue,
+} from "../src/lib/lead-validation.ts";
 const valid = {
   full_name: "Persona Demostración",
   phone: "0991234567",
   province: "Pichincha",
   plan_id: "00000000-0000-0000-0000-000000000001",
 };
+test("entrada telefónica elimina letras y separadores, limita dígitos y conserva números históricos", () => {
+  assert.equal(phoneInputValue("abc09x9123-4567"), "0991234567");
+  assert.equal(phoneInputValue("099123456789"), "0991234567");
+  assert.equal(phoneInputValue("099 123 4567"), "0991234567");
+  assert.equal(phoneInputValue("+593991234567"), "0991234567");
+  assert.equal(phoneInputValue("+59322345678"), "022345678");
+  assert.equal(phoneInputValue("texto"), "");
+});
 test("acepta teléfonos celulares, fijos e internacionales del contrato", () => {
   for (const phone of [
     "099 123 4567",

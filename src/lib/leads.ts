@@ -37,6 +37,10 @@ export async function sendLead(input: LeadInput): Promise<CreatedLead> {
     throw new Error(
       "El plan ya no está disponible. Vuelve al catálogo y elige otro plan.",
     );
+  if (response.status === 409)
+    throw new Error(
+      "Ya existe una solicitud en curso con este teléfono. Podrás enviar otra cuando la anterior esté cerrada.",
+    );
   if (response.status === 400)
     throw new Error(
       "La API rechazó los datos. Revisa el nombre, teléfono y provincia antes de reintentar.",

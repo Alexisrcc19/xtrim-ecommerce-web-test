@@ -4,6 +4,7 @@ import { provinces } from "@/lib/lead-validation";
 import { statusLabels, statuses } from "@/lib/admin/types";
 import type { Lead } from "@/lib/admin/types";
 import type { Plan } from "@/lib/plans";
+import { PhoneInput } from "@/components/phone-input";
 
 export function LeadFields({
   lead,
@@ -26,14 +27,12 @@ export function LeadFields({
         maxLength={150}
       />
       <label htmlFor={`${id}-phone`}>Teléfono</label>
-      <input
+      <PhoneInput
         id={`${id}-phone`}
         name="phone"
-        type="tel"
         autoComplete="tel"
         defaultValue={lead?.phone || ""}
         required
-        maxLength={30}
       />
       <label htmlFor={`${id}-province`}>Provincia</label>
       <select

@@ -64,5 +64,6 @@ pnpm start
 
 - Express gestiona datos y reglas de negocio; Next.js gestiona la interfaz y la sesión administrativa firmada, de ocho horas. Producción requiere HTTPS. Rotar las credenciales invalida las sesiones; el límite de intentos de acceso es local al proceso.
 - Las ventas en USD suman los montos mensuales históricos de leads cerrados y ganados (`CLOSED` + `WON`); no representan pagos cobrados. Eliminar un lead es permanente y requiere confirmación.
+- Un teléfono solo puede tener una solicitud en Nuevo o En gestión. Tras cerrarla se permite otra; Express y PostgreSQL garantizan la restricción y el frontend muestra el conflicto.
 - El CRM recibe avisos SSE sin polling y actualiza la vista al recibir cambios. Requiere ambos servicios actualizados, streaming sin buffering y una instancia Express. Varias réplicas requerirían compartir notificaciones.
 - Al desplegar, configura las URLs públicas antes del build y comprueba que el hosting permita conexiones SSE persistentes.

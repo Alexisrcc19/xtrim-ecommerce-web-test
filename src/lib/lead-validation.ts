@@ -31,6 +31,13 @@ export interface LeadInput {
   plan_id: string;
 }
 export type FieldErrors = Partial<Record<keyof LeadInput, string>>;
+export function phoneInputValue(value: string): string {
+  // Preserve existing Ecuadorian international numbers in their local form.
+  return value
+    .replace(/^\+593/, "0")
+    .replace(/[^0-9]/g, "")
+    .slice(0, 10);
+}
 export function validateLead(input: LeadInput): FieldErrors {
   const errors: FieldErrors = {};
   const name = input.full_name.trim();
@@ -48,7 +55,7 @@ export function validateLead(input: LeadInput): FieldErrors {
     )
   )
     errors.phone =
-      "Ingresa un teléfono ecuatoriano válido, por ejemplo 0991234567 o +593991234567.";
+      "Ingresa un teléfono ecuatoriano válido, por ejemplo 0991234567.";
   if (!provinces.some((province) => province === input.province))
     errors.province = "Selecciona una provincia.";
   if (!input.plan_id) errors.plan_id = "Selecciona un plan disponible.";
