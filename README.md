@@ -1,67 +1,68 @@
-# XTRIM · Ecommerce público
+# XTRIM — Ecommerce y CRM
 
-Frontend de demostración independiente, construido con Next.js 16 App Router, React, TypeScript estricto y Tailwind CSS 4. No es el sitio oficial de XTRIM. Los planes y precios provienen de la API Express; no hay un catálogo de respaldo hardcodeado.
+Frontend de una demostración técnica con Next.js 16, TypeScript y Tailwind CSS. Consume la API Express de `xtrim-ecommerce-api`. Los planes y precios son demostrativos; no es el sitio oficial de XTRIM.
 
-## Ejecutar
+## Instalación
 
-Requiere Node.js 24 y pnpm. Instala con `pnpm install`. Usa `.env.example` como referencia para configurar tu entorno local; no contiene secretos:
+Requisitos: Node.js 24, pnpm y la API Express en ejecución.
 
-- `NEXT_PUBLIC_API_URL`: base pública de Express, incluyendo `/api/v1`. Por defecto `http://localhost:4000/api/v1`.
-- `NEXT_PUBLIC_SITE_URL`: URL del frontend para canonical, robots y sitemap. Por defecto `http://localhost:3000`; debe ser el dominio público al desplegar.
+```bash
+pnpm install
+```
 
-Inicia Express por separado según su README y ejecuta `pnpm dev`. Abre http://localhost:3000. El backend debe permitir este origen en `FRONTEND_URL`; el POST se realiza directamente desde el navegador. Para producción: `pnpm build` y `pnpm start`. Las variables públicas deben estar configuradas antes del build.
+Copia `.env.example` a `.env.local` si aún no existe y configura las variables:
 
-No configurar `ADMIN_API_TOKEN` ni `DATABASE_URL` en este frontend. No se implementan persistencia, API paralela ni CRM.
+| Variable | Uso |
+| --- | --- |
+| `NEXT_PUBLIC_API_URL` | API accesible desde el navegador, por defecto `http://localhost:4000/api/v1`. |
+| `NEXT_PUBLIC_SITE_URL` | URL del frontend, por defecto `http://localhost:3000`. |
+| `API_URL` | API accesible desde el servidor de Next.js. |
+| `ADMIN_API_TOKEN` | Mismo token privado configurado en Express. |
+| `ADMIN_USERNAME` | Usuario administrador. |
+| `ADMIN_PASSWORD_HASH` | Hash scrypt de la contraseña administrativa. |
+| `ADMIN_SESSION_SECRET` | Secreto independiente; generar con `openssl rand -hex 32`. |
 
-## Rutas y contrato
+Para generar el hash de una contraseña de al menos 12 caracteres, en Bash:
 
-- `/`: inicio con planes destacados obtenidos desde Express.
-- `/planes`: catálogo completo de planes activos; detalles y solicitud en un diálogo accesible.
-- `/sitemap.xml`: incluye únicamente inicio y catálogo.
-- `/robots.txt`: excluye `/admin` y `/api/`.
+```bash
+read -rsp 'Contraseña: ' xtrim_password
+printf '\n'
+printf '%s' "$xtrim_password" | node scripts/hash-admin-password.mjs
+unset xtrim_password
+```
 
-Se consume `GET /api/v1/plans`, con respuesta `{ data: ... }`. El detalle modal utiliza el mismo objeto completo recibido en el catálogo. Los planes usan `id`, `name`, `slug`, `description`, `speed_mbps`, `monthly_price` (decimal como cadena) e `is_active`.
+Copia el hash resultante a `ADMIN_PASSWORD_HASH`. Las credenciales solo se utilizan en servidor; no deben llevar el prefijo `NEXT_PUBLIC_` ni subirse a Git. PostgreSQL se configura únicamente en el backend.
 
-El formulario envía exclusivamente `{ full_name, phone, province, plan_id }` a `POST /api/v1/leads`, sin autenticación. Solo muestra éxito con HTTP 201 y `{ data: { id, status: "NEW", created_at } }`. Muestra el UUID real de la solicitud. Se manejan validación (400), plan no disponible (422), límite de intentos (429 y `Retry-After`), fallo de servidor y error de conexión. No se reintenta automáticamente un POST: tras un fallo de red no se puede asegurar que la API no haya persistido el lead.
+```bash
+pnpm dev
+```
 
-La validación cliente proporciona feedback; el backend sigue siendo la autoridad. Las provincias y formatos de teléfono se contrastaron con `leads.validation.ts` del backend. Cambios en ese contrato deben reflejarse aquí.
+Abre [localhost:3000](http://localhost:3000). Express debe permitir este origen en `FRONTEND_URL`. Reinicia Next.js después de modificar las variables.
 
-## Diseño y accesibilidad
+## Rutas
 
-La referencia principal son las capturas de Figma: morado intenso, azul oscuro, fondos lavanda, tarjetas y formulario responsive. El hero utiliza `public/Vida conectada.png`, proporcionada por el usuario, mediante `next/image`, con tamaños responsive y carga prioritaria. El logo sigue siendo una marca tipográfica provisional. No se afirman prestaciones como Wi-Fi incluido, IVA incluido o soporte 24/7 porque no forman parte del contrato disponible. Tampoco se añaden enlaces decorativos de CRM, redes o cobertura.
+- `/`: inicio.
+- `/planes`: catálogo, detalle y formulario mediante modales.
+- `/admin/login`: acceso administrativo.
+- `/admin`: dashboard.
+- `/admin/leads`: gestión de leads.
+- `/admin/pipeline`: Kanban.
 
-Las páginas y el contenido esencial de las tarjetas se renderizan en servidor. Las tarjetas se hidratan para abrir los modales; el formulario conserva su componente y lógica de envío existentes. No se añaden librerías. Tipografía del sistema para evitar peticiones y saltos de fuente. La imagen del hero se optimiza con Next y reserva su espacio para evitar saltos de diseño. El menú móvil conserva enlaces visibles sin JavaScript adicional.
+Las páginas públicas se renderizan en servidor y tienen metadata, canonical, sitemap y robots. El CRM queda excluido de indexación.
 
-Se incluyen etiquetas, foco visible, errores asociados, confirmación con foco, aviso de carga, prevención de doble envío, salto al contenido y soporte para movimiento reducido. La composición se adapta a móvil con formulario y tarjetas en una columna.
+## Comandos
 
-## Verificación
-
-```sh
+```bash
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm start
 ```
 
-Las pruebas usan el runner integrado de Node sin dependencias adicionales. Comprueban teléfonos del contrato, nombres Unicode, provincias, selección del plan y respuestas de envío (éxito, validación, rate limit, indisponibilidad y red). Los mocks solo existen en pruebas, nunca en las páginas ni en el flujo final.
+## Decisiones técnicas
 
-Recorrido manual con Express y PostgreSQL activos:
-
-1. Abrir inicio y catálogo; contrastar planes/precios con `GET /plans` y comprobar el HTML renderizado.
-2. Comprobar título, descripción y canonical de inicio y catálogo. Abrir detalles, pasar al formulario y comprobar que la URL no cambia. Las antiguas rutas `/planes/[slug]` deben devolver 404.
-3. Enviar campos inválidos: verificar errores y foco. Con datos ficticios válidos, enviar una sola solicitud y comprobar UUID real y persistencia usando las herramientas del backend.
-4. Probar un error de red: conservar datos y permitir reintento, sin prometer deduplicación.
-5. Revisar foco contenido en el diálogo, cierre con Escape y botón, retorno al disparador y vistas móviles de 320, 375 y 768 px, sin desplazamiento horizontal. Durante un envío se bloquea el cierre para no perder una confirmación pendiente.
-6. Consultar sitemap y robots con el dominio definitivo. El sitemap contiene solo las dos páginas públicas y no depende de la disponibilidad de la API.
-
-Las comprobaciones de código no sustituyen una prueba E2E contra PostgreSQL ni una medición de Lighthouse. Esta etapa no despliega servicios ni modifica el backend o archivos `.env` reales.
-
-Resultados concretos de esta implementación: [verificación local](docs/frontend-verification.md).
-
-La estructura actual prioriza el catálogo y los modales por indicación del usuario: se eliminó `/planes/[slug]` y la metadata por plan. Cada página pública mantiene título, descripción y canonical propios; los modales no crean URLs indexables independientes. El diálogo nativo aporta contención del foco e inactividad del fondo. CSS añade entrada sutil, scroll interno y soporte para movimiento reducido.
-
-## Contacto desde el menú
-
-«Contáctanos» abre el único modal compartido del layout sin navegación, también en móvil. Consulta los planes públicos al abrir, muestra carga/error con reintento y presenta el selector obligatorio con «Selecciona un plan», sin preselección. Las tarjetas reutilizan el mismo diálogo y formulario con el plan correspondiente preseleccionado y los planes ya obtenidos en servidor. Cerrar con Escape o el botón restaura el foco; durante un envío se conserva el bloqueo de cierre. Volver al inicio desde la confirmación cierra el modal. No se cambian el endpoint ni el contrato de captación.
-
-Auditoría final previa al CRM: [navegación, accesibilidad, SEO y rendimiento local](docs/public-audit.md).
+- Express gestiona datos y reglas de negocio; Next.js gestiona la interfaz y la sesión administrativa firmada, de ocho horas. Producción requiere HTTPS. Rotar las credenciales invalida las sesiones; el límite de intentos de acceso es local al proceso.
+- Las ventas en USD suman los montos mensuales históricos de leads cerrados y ganados (`CLOSED` + `WON`); no representan pagos cobrados. Eliminar un lead es permanente y requiere confirmación.
+- El CRM recibe avisos SSE sin polling y actualiza la vista al recibir cambios. Requiere ambos servicios actualizados, streaming sin buffering y una instancia Express. Varias réplicas requerirían compartir notificaciones.
+- Al desplegar, configura las URLs públicas antes del build y comprueba que el hosting permita conexiones SSE persistentes.

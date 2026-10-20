@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Header, Footer } from "@/components/site";
 import "./globals.css";
-import { PlanModals } from "@/components/plan-modals";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -24,13 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es-EC">
-      <body>
-        <PlanModals>
-          <Header />
-          {children}
-          <Footer />
-        </PlanModals>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

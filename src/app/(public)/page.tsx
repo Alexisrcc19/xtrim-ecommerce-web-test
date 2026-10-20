@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import banner from "../../public/Vida conectada.png";
+import banner from "../../../public/Vida conectada.png";
 import { Questions } from "@/components/site";
 import { PlanCatalog } from "@/components/plan-catalog";
 
