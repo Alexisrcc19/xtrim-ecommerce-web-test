@@ -3,23 +3,26 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
-const actions = [
-  { mode: "detail", label: "Ver" },
-  { mode: "edit", label: "Editar" },
-  { mode: "status", label: "Cambiar estado" },
-  { mode: "delete", label: "Eliminar" },
-] as const;
+type ActionMode = "detail" | "edit" | "status" | "delete";
 
 export function LeadActionsMenu({
   name,
+  statusLabel,
   onSelect,
 }: {
   name: string;
+  statusLabel: string | null;
   onSelect: (
-    mode: (typeof actions)[number]["mode"],
+    mode: ActionMode,
     trigger: HTMLElement,
   ) => void;
 }) {
+  const actions: { mode: ActionMode; label: string }[] = [
+    { mode: "detail", label: "Ver" },
+    { mode: "edit", label: "Editar" },
+    ...(statusLabel ? [{ mode: "status" as const, label: statusLabel }] : []),
+    { mode: "delete", label: "Eliminar" },
+  ];
   const [expanded, setExpanded] = useState(false);
   const id = useId();
   const container = useRef<HTMLDivElement>(null);

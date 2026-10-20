@@ -35,6 +35,6 @@ export interface ActionResult {
   error?: string;
 }
 export type StatusChange =
-  | { status: "NEW" | "IN_PROGRESS" }
+  | { status: "IN_PROGRESS" }
   | { status: "CLOSED"; outcome: "LOST" }
   | { status: "CLOSED"; outcome: "WON"; sale_amount: string };

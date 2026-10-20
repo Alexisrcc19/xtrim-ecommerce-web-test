@@ -67,3 +67,10 @@ pnpm start
 - Un teléfono solo puede tener una solicitud en Nuevo o En gestión. Tras cerrarla se permite otra; Express y PostgreSQL garantizan la restricción y el frontend muestra el conflicto.
 - El CRM recibe avisos SSE sin polling y actualiza la vista al recibir cambios. Requiere ambos servicios actualizados, streaming sin buffering y una instancia Express. Varias réplicas requerirían compartir notificaciones.
 - Al desplegar, configura las URLs públicas antes del build y comprueba que el hosting permita conexiones SSE persistentes.
+
+
+## Flujo comercial
+
+Las oportunidades avanzan de Nuevo a En gestión y después a Cerrado. La tabla y el Kanban ofrecen «Iniciar gestión» y «Cerrar oportunidad» según el estado actual. El modal de cierre exige Ganado o Perdido y, para ventas ganadas, un monto mensual en USD. El resultado de una oportunidad cerrada es de solo lectura.
+
+La API devuelve HTTP 409 cuando una transición es inválida o el estado cambió desde otra vista. El CRM muestra el conflicto y consulta nuevamente la oportunidad para presentar sus datos actuales.

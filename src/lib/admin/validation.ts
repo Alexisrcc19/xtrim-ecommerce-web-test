@@ -9,7 +9,7 @@ export function statusChange(
   outcome: string,
   amount: string,
 ): StatusChange {
-  if (status === "NEW" || status === "IN_PROGRESS") return { status };
+  if (status === "IN_PROGRESS") return { status };
   if (status !== "CLOSED") throw new Error("Selecciona un estado válido.");
   if (outcome === "LOST") return { status, outcome };
   if (outcome !== "WON")
