@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { loadLead, mutateLead } from "@/app/admin/lead-actions";
 import type { Lead } from "@/lib/admin/types";
 import { statusLabels } from "@/lib/admin/types";
+import { statusAction } from "@/lib/admin/workflow";
 import type { Plan } from "@/lib/plans";
 import { price } from "@/lib/format";
 import { PlanDialog } from "@/components/plan-dialog";
@@ -16,14 +17,14 @@ const titles: Record<Mode, string> = {
   detail: "Detalle del lead",
   create: "Crear lead",
   edit: "Editar lead",
-  status: "Cambiar estado",
+  status: "Cerrar oportunidad",
   delete: "Eliminar lead",
 };
 
 const buttonLabels = {
   detail: "Ver",
   edit: "Editar",
-  status: "Estado",
+  status: "Cerrar oportunidad",
   delete: "Eliminar",
 };
 const outcomes = { WON: "Ganado", LOST: "Perdido" };
@@ -47,6 +48,11 @@ export function LeadActions({
   const titleId = useId();
   const router = useRouter();
   const submitting = useRef(false);
+
+  const actionLabel = lead ? statusAction(lead.status)?.label : undefined;
+  let dialogTitle = mode ? titles[mode] : "Lead";
+  if (mode === "status" && current)
+    dialogTitle = statusAction(current.status)?.label ?? "Resultado de la oportunidad";
 
   async function open(next: Mode, target: HTMLElement) {
     setTrigger(target);
@@ -83,6 +89,11 @@ export function LeadActions({
       const result = await mutateLead(lead?.id || null, mode, data);
       if (result.error) {
         setError(result.error);
+        if (mode === "status" && lead) {
+          const latest = await loadLead(lead.id);
+          if (latest.lead) setCurrent(latest.lead);
+          router.refresh();
+        }
         return;
       }
       setMode(null);
@@ -98,10 +109,20 @@ export function LeadActions({
     }
   }
   function body() {
-    const submitLabel = mode === "delete" ? "Confirmar eliminación" : "Guardar";
+    let submitLabel = "Guardar";
+    if (mode === "delete") submitLabel = "Confirmar eliminación";
+    if (mode === "status" && current) submitLabel = statusAction(current.status)?.label ?? "Cerrar oportunidad";
     if (loading) return <p role="status">Consultando información…</p>;
     if (error && !current && mode !== "create")
       return <p role="alert">{error}</p>;
+    if (mode === "status" && current?.status === "CLOSED")
+      return (
+        <div>
+          {error && <p role="alert" className="form-error">{error}</p>}
+          <p>Esta oportunidad ya está cerrada. Su resultado es definitivo.</p>
+          <p>{current.outcome ? outcomes[current.outcome] : "Cerrado"}{current.sale_amount !== null ? ` · ${price(current.sale_amount)} / mes` : ""}</p>
+        </div>
+      );
     if (mode === "detail" && current)
       return (
         <dl className="crm-detail">
@@ -159,7 +180,7 @@ export function LeadActions({
           </p>
         )}
         <fieldset disabled={pending}>
-          <legend className="sr-only">{mode ? titles[mode] : "Lead"}</legend>
+          <legend className="sr-only">{dialogTitle}</legend>
           {(mode === "create" || mode === "edit") && (
             <LeadFields lead={current} plans={plans} />
           )}
@@ -200,20 +221,21 @@ export function LeadActions({
       {compact && lead ? (
         <LeadActionsMenu
           name={lead.full_name}
+          statusLabel={actionLabel ?? null}
           onSelect={(action, target) => void open(action, target)}
         />
       ) : (
         <div className="crm-row-actions">
           {lead ? (
-            (["detail", "edit", "status", "delete"] as const).map((action) => (
+            (["detail", "edit", "status", "delete"] as const).filter(action => action !== "status" || actionLabel).map((action) => (
               <button
                 key={action}
                 type="button"
                 aria-haspopup="dialog"
-                aria-label={`${titles[action]}: ${lead.full_name}`}
+                aria-label={`${action === "status" ? actionLabel : titles[action]}: ${lead.full_name}`}
                 onClick={(event) => void open(action, event.currentTarget)}
               >
-                {buttonLabels[action]}
+                {action === "status" ? actionLabel : buttonLabels[action]}
               </button>
             ))
           ) : (
@@ -228,6 +250,11 @@ export function LeadActions({
             </button>
           )}
         </div>
+      )}
+      {!compact && lead?.status === "CLOSED" && (
+        <span className="caption">
+          {lead.outcome ? outcomes[lead.outcome] : "Cerrado"}{lead.sale_amount !== null ? ` · ${price(lead.sale_amount)} / mes` : ""}
+        </span>
       )}
       {notice && (
         <span role="status" className="crm-action-notice">
@@ -246,7 +273,7 @@ export function LeadActions({
             className={`crm-dialog${mode === "detail" ? " crm-dialog-detail" : ""}`}
           >
             <h2 id={titleId} data-modal-heading tabIndex={-1}>
-              {titles[mode]}
+              {dialogTitle}
             </h2>
             {body()}
           </div>

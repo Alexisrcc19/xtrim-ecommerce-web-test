@@ -1,7 +1,7 @@
 "use client";
 import { useId, useState } from "react";
 import { provinces } from "@/lib/lead-validation";
-import { statusLabels, statuses } from "@/lib/admin/types";
+import { statusAction } from "@/lib/admin/workflow";
 import type { Lead } from "@/lib/admin/types";
 import type { Plan } from "@/lib/plans";
 import { PhoneInput } from "@/components/phone-input";
@@ -70,26 +70,18 @@ export function LeadFields({
 }
 export function StatusFields({ lead }: { lead: Lead }) {
   const id = useId();
-  const [status, setStatus] = useState(lead.status);
-  const [outcome, setOutcome] = useState(lead.outcome || "");
+  const [outcome, setOutcome] = useState("");
+  const action = statusAction(lead.status);
+  if (!action) return <p>Esta oportunidad está cerrada. Su resultado es definitivo.</p>;
   return (
     <>
-      <label htmlFor={`${id}-status`}>Estado</label>
-      <select
-        id={`${id}-status`}
-        name="status"
-        value={status}
-        onChange={(event) => setStatus(event.target.value as Lead["status"])}
-      >
-        {statuses.map((value) => (
-          <option key={value} value={value}>
-            {statusLabels[value]}
-          </option>
-        ))}
-      </select>
-      {status === "CLOSED" && (
+      <input type="hidden" name="status" value={action.next} />
+      {action.next === "IN_PROGRESS" ? (
+        <p>¿Iniciar la gestión de <strong>{lead.full_name}</strong>?</p>
+      ) : (
         <>
-          <label htmlFor={`${id}-outcome`}>Resultado del cierre</label>
+          <p>Registra el resultado de <strong>{lead.full_name}</strong>. El cierre es definitivo y no se puede modificar después.</p>
+          <label htmlFor={`${id}-outcome`}>Resultado de la oportunidad</label>
           <select
             id={`${id}-outcome`}
             name="outcome"
@@ -97,42 +89,32 @@ export function StatusFields({ lead }: { lead: Lead }) {
             onChange={(event) => setOutcome(event.target.value)}
             required
           >
-            <option value="">Selecciona un resultado</option>
+            <option value="">Selecciona Ganado o Perdido</option>
             <option value="WON">Ganado</option>
             <option value="LOST">Perdido</option>
           </select>
           {outcome === "WON" && (
             <>
-              <label htmlFor={`${id}-amount`}>
-                Monto mensual vendido (USD)
-              </label>
+              <label htmlFor={`${id}-amount`}>Monto mensual vendido (USD)</label>
               <input
                 id={`${id}-amount`}
                 name="sale_amount"
                 inputMode="decimal"
-                defaultValue={lead.sale_amount || ""}
+                pattern="(0|[1-9][0-9]{0,7})([.][0-9]{1,2})?"
                 placeholder="Ej. 24.90"
                 required
                 maxLength={11}
                 aria-describedby={`${id}-hint`}
               />
               <p id={`${id}-hint`} className="caption">
-                Usa punto decimal. Se conserva este monto histórico, aunque
-                cambie el precio del plan.
+                Usa punto decimal, de 0 a 99999999.99. Este valor mensual vendido no representa dinero cobrado.
               </p>
             </>
           )}
           {outcome === "LOST" && (
-            <p className="caption">
-              Un cierre perdido no registra monto ni cuenta como venta ganada.
-            </p>
+            <p className="caption">Un cierre perdido no registra importe ni cuenta como venta ganada.</p>
           )}
         </>
-      )}
-      {status !== "CLOSED" && lead.status === "CLOSED" && (
-        <p className="caption">
-          Al reabrir se eliminarán el resultado y el monto del cierre anterior.
-        </p>
       )}
     </>
   );

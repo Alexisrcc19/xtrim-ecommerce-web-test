@@ -6,8 +6,8 @@ import {
   pageNumber,
 } from "../src/lib/admin/validation.ts";
 
-test("reabrir envía únicamente el nuevo estado; perdido no registra monto", () => {
-  assert.deepEqual(statusChange("NEW", "WON", "100"), { status: "NEW" });
+test("gestión envía solo el nuevo estado; perdido no registra monto ni se permite reabrir", () => {
+  assert.throws(() => statusChange("NEW", "WON", "100"));
   assert.deepEqual(statusChange("IN_PROGRESS", "LOST", "100"), {
     status: "IN_PROGRESS",
   });
@@ -42,4 +42,11 @@ test("valida UUID y pagina sin propagar valores malformados", () => {
   assert.equal(pageNumber("2"), 2);
   for (const value of [undefined, "-1", "0", "2e3", ["2"], "999999999"])
     assert.equal(pageNumber(value), 1);
+});
+
+test("acciones contextuales según el estado; cerrado no ofrece transición", async () => {
+  const { statusAction } = await import("../src/lib/admin/workflow.ts");
+  assert.deepEqual(statusAction("NEW"), { label: "Iniciar gestión", next: "IN_PROGRESS" });
+  assert.deepEqual(statusAction("IN_PROGRESS"), { label: "Cerrar oportunidad", next: "CLOSED" });
+  assert.equal(statusAction("CLOSED"), null);
 });

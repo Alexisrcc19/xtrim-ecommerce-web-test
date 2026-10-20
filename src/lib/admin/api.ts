@@ -30,11 +30,17 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new Error("No se pudo conectar con la API. Inténtalo de nuevo.");
   }
   if (!response.ok) {
+    let code: unknown;
+    try { code = (await response.json())?.error?.code; } catch { /* La API puede no devolver JSON si falla un proxy. */ }
+    if (response.status === 409 && code === "INVALID_STATUS_TRANSITION")
+      throw new Error("La oportunidad ya cambió de estado o está cerrada. Actualiza la vista; solo puedes iniciar la gestión y después cerrar la oportunidad.");
     const messages: Record<number, string> = {
       400: "La API rechazó los datos. Revisa los campos.",
       401: "La credencial de la API no es válida. Revisa la configuración del servidor.",
       404: "El lead ya no existe.",
-      409: "Ya existe una solicitud en Nuevo o En gestión con este teléfono. Revisa el teléfono o el estado antes de guardar.",
+      409: code === "ACTIVE_PHONE_EXISTS"
+        ? "Ya existe una solicitud en Nuevo o En gestión con este teléfono. Revisa el teléfono antes de guardar."
+        : "La operación entra en conflicto con el estado actual. Actualiza la vista e inténtalo de nuevo.",
       422: "El plan no está disponible.",
       429: "Se alcanzó el límite de solicitudes. Inténtalo más tarde.",
       503: "La API administrativa no está configurada o disponible.",
