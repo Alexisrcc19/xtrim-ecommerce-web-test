@@ -77,3 +77,18 @@ pnpm start
 Las oportunidades avanzan de Nuevo a En gestión y después a Cerrado. La tabla y el Kanban ofrecen «Iniciar gestión» y «Cerrar oportunidad» según el estado actual. El modal de cierre exige Ganado o Perdido y, para ventas ganadas, un monto mensual en USD. El resultado de una oportunidad cerrada es de solo lectura.
 
 La API devuelve HTTP 409 cuando una transición es inválida o el estado cambió desde otra vista. El CRM muestra el conflicto y consulta nuevamente la oportunidad para presentar sus datos actuales.
+
+## Entrega y acceso
+
+- [Repositorio frontend](https://github.com/Alexisrcc19/xtrim-ecommerce-web-test).
+- [Repositorio backend](https://github.com/Alexisrcc19/xtrim-ecommerce-api-test).
+- [Sitio público en Vercel](https://xtrim-ecommerce-web-test.vercel.app).
+- [CRM: acceso administrativo](https://xtrim-ecommerce-web-test.vercel.app/admin/login). Usuario: `admin`; la contraseña se entrega por un canal privado.
+- [API en Render](https://xtrim-ecommerce-api-test.onrender.com/api/v1/health).
+- [Caso práctico](https://github.com/Alexisrcc19/xtrim-ecommerce-api-test/blob/main/docs/caso-practico.md).
+
+## Arquitectura y despliegue
+
+Vercel ejecuta Next.js; Render ejecuta Express y accede a PostgreSQL en Neon. Las páginas públicas consultan la API desde servidor y el formulario envía la captación a Express. El CRM utiliza rutas de servidor de Next.js que comprueban la sesión y agregan el token privado al consultar Express. La persistencia y las reglas comerciales pertenecen exclusivamente al backend.
+
+En Vercel se configura este repositorio con `pnpm build`, las URLs públicas definitivas y las variables privadas descritas en instalación. `API_URL` apunta a `https://xtrim-ecommerce-api-test.onrender.com/api/v1`; `NEXT_PUBLIC_API_URL` utiliza la misma URL y `NEXT_PUBLIC_SITE_URL` apunta al dominio Vercel. Render debe permitir ese origen mediante `FRONTEND_URL`. Las credenciales administrativas se configuran en el entorno del servidor. Después del despliegue se verifican catálogo, SEO y acceso al CRM mediante las rutas públicas y el inicio de sesión administrativo.
