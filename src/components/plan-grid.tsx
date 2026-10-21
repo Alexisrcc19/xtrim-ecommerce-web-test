@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import type { Plan } from "@/lib/plans";
+import { planPath } from "@/lib/public-plans";
 import { price } from "@/lib/format";
 import { usePlanModals } from "./plan-modals";
 
@@ -57,8 +59,11 @@ export function PlanGrid({ plans, limit }: { plans: Plan[]; limit?: number }) {
                 openPlan(plan, plans, event.currentTarget, "details")
               }
             >
-              Ver detalles ↗
+              Vista rápida
             </button>
+            <Link className="details-link" href={planPath(plan.slug)}>
+              Ver detalles ↗
+            </Link>
           </article>
         ))}
       </div>
