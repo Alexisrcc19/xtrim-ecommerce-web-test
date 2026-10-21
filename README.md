@@ -43,12 +43,15 @@ Abre [localhost:3000](http://localhost:3000). Express debe permitir este origen 
 
 - `/`: inicio.
 - `/planes`: catálogo, detalle y formulario mediante modales.
+- `/planes/[slug]`: detalle del plan renderizado en servidor, con URL canónica, metadata propia y acceso al formulario existente.
 - `/admin/login`: acceso administrativo.
 - `/admin`: dashboard.
 - `/admin/leads`: gestión de leads.
 - `/admin/pipeline`: Kanban.
 
 Las páginas públicas se renderizan en servidor y tienen metadata, canonical, sitemap y robots. El CRM queda excluido de indexación.
+
+El catálogo conserva la vista rápida y añade un enlace a cada página individual. El sitemap consulta los planes activos de Express; un fallo de la API se trata como error, sin publicar un catálogo incompleto. Para Vercel, configura `NEXT_PUBLIC_SITE_URL` con el dominio público definitivo y `NEXT_PUBLIC_API_URL` con la API de Render antes del build. No se necesitan variables nuevas.
 
 ## Comandos
 

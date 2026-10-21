@@ -498,6 +498,65 @@ footer p {
   gap: 70px;
   align-items: start;
 }
+.plan-page-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(28px, 6vw, 80px);
+  align-items: start;
+}
+.plan-page-heading {
+  font-size: 21px;
+  margin-top: 36px;
+}
+.plan-page-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 22px 0;
+  border-block: 1px solid var(--line);
+  margin: 20px 0;
+}
+.plan-page-facts dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.plan-page-facts dd {
+  font-size: 21px;
+  font-weight: 600;
+  margin: 7px 0 0;
+  overflow-wrap: anywhere;
+}
+.plan-page-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 13px;
+}
+.plan-page-request {
+  background: white;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+.plan-page-request h2 {
+  font-size: 26px;
+}
+.plan-page-request > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 13px;
+}
+.plan-page-request .button {
+  width: 100%;
+  margin: 8px 0 18px;
+}
+@media (max-width: 800px) {
+  .plan-page-grid {
+    grid-template-columns: 1fr;
+  }
+  .plan-page-request {
+    padding: 24px;
+  }
+}
 .plan-summary {
   background: var(--night);
   color: white;
